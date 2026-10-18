@@ -16,7 +16,7 @@
 
 % 3. List spacing
 \usepackage{enumitem}
-\setlist{itemsep=0.4em, topsep=0.4em}
+\setlist{itemsep=0.35em, topsep=0.35em}
 
 % 4. Callout boxes (tcolorbox)
 \usepackage[many]{tcolorbox}
@@ -38,7 +38,7 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\textbf{Lab 01 --- Exploratory Data Analysis}}
+\fancyhead[L]{\textbf{Lab 01 --- Practical EDA \& Data Quality}}
 \fancyhead[R]{ML \& Data Mining --- UniBo}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -82,284 +82,229 @@
 
 \begin{document}
 
-\section*{Lab 01: Exploratory Data Analysis \& Data Quality}
-\addcontentsline{toc}{section}{Lab 01: Exploratory Data Analysis \& Data Quality}
+\section*{Lab 01: Practical Exploratory Data Analysis \& Data Quality}
+\addcontentsline{toc}{section}{Lab 01: Practical Exploratory Data Analysis \& Data Quality}
 
 \noindent\textbf{Course:} Machine Learning and Data Mining --- Prof. Claudio Sartori\\
 \textbf{Degree:} Master in Artificial Intelligence, Università di Bologna (UniBo)\\
-\textbf{Focus Datasets:} Fisher's Iris Dataset ($\mathbb{R}^{150 \times 4}$, supervised 3-class) \& NordicMart Customer Churn ($\mathbb{R}^{3000 \times 8}$, synthetic CRM)
+\textbf{Core Reference:} Lecture Slides \textit{The Data} \& Lab Notebook \texttt{lab01-eda}
 
 \vspace{0.8em}
 \hrule
 \vspace{1.2em}
 
 % ==============================================================================
-% 1. CORE MACHINE LEARNING CONCEPTS & THEORY
+% 1. ESSENTIAL CONCEPTS FROM CLASS NOTES & LAB
 % ==============================================================================
-\section{Core Machine Learning Concepts \& Theoretical Foundations}
+\section{Essential Concepts (Class Notes \& Lab Context)}
 
-Exploratory Data Analysis (EDA) is not merely visual inspection; it is the foundational auditing phase that determines data preprocessing pipelines, valid distance metrics, loss functions, and feature engineering decisions.
+Exploratory Data Analysis (EDA) is the systematic audit of a dataset before any model training. As emphasized in the course slides: \textit{``Better data quality $\implies$ better results (garbage-in, garbage-out)''}.
 
-\subsection{Stevens' Typology of Measurement Scales (1946)}
-Every feature in a feature matrix $\mathbf{X} \in \mathbb{R}^{n \times d}$ belongs to a specific scale of measurement that strictly dictates which mathematical operations and algorithms are mathematically valid.
+\subsection{Attribute Types \& Permitted Operations (Stevens, 1946)}
+From the lecture slides (\textit{The Data}, slide 5), attributes are categorized into four levels. The operations permitted on each level are incremental:
 
-\begin{definitionbox}[Stevens' Measurement Scales in Machine Learning]
-\begin{enumerate}[leftmargin=*]
-    \item \textbf{Nominal Scale:} Qualitative categories with no intrinsic ordering ($=\,, \neq$). Permitted statistics: Mode, entropy. Operations like arithmetic mean or distance metrics are invalid.
-    \begin{itemize}
-        \item \textit{Lab Examples:} `class` in Iris; `customer_id` (identifier); `postcode` (categorical code).
-        \item \textit{ML Rule:} Identifiers must be removed before feature modeling to prevent data leakage and arbitrary label memorization.
-    \end{itemize}
-    \item \textbf{Ordinal Scale:} Distinct categories with a strict, transitive monotonic order ($<, \le, =, \ge, >$). Distances between ranks are undefined. Permitted statistics: Median, percentiles, Spearman rank correlation.
-    \begin{itemize}
-        \item \textit{Lab Example:} `tier` ($\text{Basic} < \text{Silver} < \text{Gold}$).
-        \item \textit{ML Rule:} Encoded via ordinal integer mapping ($0 < 1 < 2$) for monotonic models or one-hot encoding if step-distances are non-uniform.
-    \end{itemize}
-    \item \textbf{Interval Scale:} Quantitative values where differences are meaningful, but there is no absolute/true physical zero. Ratios are meaningless ($20^\circ\text{C}$ is not ``twice as hot'' as $10^\circ\text{C}$). Permitted statistics: Mean, variance, Pearson correlation.
-    \item \textbf{Ratio Scale:} Quantitative physical values with an absolute, physically meaningful zero ($0 \implies$ total absence of the attribute). Ratios are strictly defined ($4\,\text{cm}$ is physically twice $2\,\text{cm}$).
-    \begin{itemize}
-        \item \textit{Lab Examples:} `sepal_length`, `petal_width`, `annual_spend`, `days_since_last_buy`.
-        \item \textit{ML Rule:} Euclidean distance ($\ell_2$), Mahalanobis distance, and power/log transformations are mathematically defined.
-    \end{itemize}
-\end{enumerate}
+\begin{definitionbox}[Data Types Summary (Prof. Sartori's Slides)]
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Nominal (Categorical):} Values are distinct labels ($=, \neq$). Operations: Mode, frequency, contingency tables, $\chi^2$ test. \textit{Examples:} \lstinline!class! (Iris species), \lstinline!postcode!.
+    \item \textbf{Ordinal (Categorical):} Values provide an intrinsic ranking ($<, >$). Operations: Median, percentiles, rank correlation. \textit{Example:} \lstinline!tier! ($\text{Basic} < \text{Silver} < \text{Gold}$).
+    \item \textbf{Interval (Numerical):} Differences are meaningful, but zero is arbitrary (no true physical zero). Operations: Mean, standard deviation, Pearson correlation, $t$-tests. \textit{Examples:} Temperature in $^\circ\text{C}$, calendar dates.
+    \item \textbf{Ratio (Numerical):} Possesses a true, univocal physical zero ($0 = \text{absence}$). Operations: All mathematical operations, ratios, percentage variations, geometric mean. \textit{Examples:} Lengths, \lstinline!annual_spend!, counts.
+\end{itemize}
+\textbf{Special Rule for Identifiers (\textit{Slide 11}):} \lstinline!customer_id! is an identifier. Identifiers are \textit{``useful for data manipulation, not for analysis''}. They must always be excluded from feature matrices to prevent artificial memorization.
 \end{definitionbox}
 
-\subsection{Distribution Skewness and Statistical Robustness}
-Let $\mathcal{X} = \{x_1, x_2, \dots, x_n\}$ be a univariate sample. Choosing between parametric location/dispersion estimators ($\mu, \sigma$) and non-parametric rank estimators ($\text{Med}, \text{IQR}$) depends on distribution symmetry and the \textbf{breakdown point}.
-
-\begin{formulabox}
-\textbf{The Breakdown Point ($\varepsilon^*$):} The maximum proportion of arbitrarily corrupted observations a statistic can tolerate before its estimate can be forced to $\pm \infty$.
-\begin{equation}
-    \varepsilon^*(\text{Sample Mean}) = 0, \quad \varepsilon^*(\text{Sample Variance}) = 0
-\end{equation}
-\begin{equation}
-    \varepsilon^*(\text{Sample Median}) = 0.5, \quad \varepsilon^*(\text{Interquartile Range}) = 0.5
-\end{equation}
-\end{formulabox}
-
-When a distribution is right-skewed (such as `annual_spend`, where $\mu = \$775.14 \gg \text{Med} = \$574.67$):
-\begin{itemize}
-    \item Multiplying a single extreme value by 10 increases the standard deviation from $\$673.81$ to $\$1193.07$ ($+77\%$), whereas the median ($\$574.67$) and IQR ($\$594.06$) remain mathematically identical.
-    \item \textbf{Implication for ML:} Linear models and gradient descent are vulnerable to leverage points from non-robust features. Skewed ratio variables must be stabilized using monotonic concave transformations such as $\log_{10}(x + 1)$ or Box-Cox.
-\end{itemize}
-
-\subsection{Tukey's IQR Outlier Rule and Subgroup Conditioning}
-Under Tukey's boxplot rule, candidate outliers are points lying outside the inner fences:
-\begin{equation}
-    \text{Fences} = \left[ Q_1 - 1.5 \cdot \text{IQR},\; Q_3 + 1.5 \cdot \text{IQR} \right]
-\end{equation}
-
-\begin{definitionbox}[Outlier Fallacy: Rare but Real vs. Corrupted Data]
-A statistical outlier according to an aggregated IQR fence is \textbf{not necessarily an error}:
-\begin{itemize}
-    \item In NordicMart, 204 customers exceed the upper fence ($\$1843.24$). However, stratifying by `tier` reveals that 131 belong to the Gold tier ($64\%$). For Gold customers, $Q_3 = \$1909.85$ and the median is $\$1297.18$.
-    \item \textbf{Takeaway:} These data points are genuine high-value customers (``whales''), not measurement errors. Truncating or deleting them removes the most profitable segment from the training data.
-\end{itemize}
-\end{definitionbox}
-
-\subsection{Simpson's Paradox and Confounder Variables}
-Simpson's Paradox occurs when an apparent statistical association observed across aggregated data reverses or disappears when the data is conditioned on a confounding variable $Z$.
-
-\begin{formulabox}
-Mathematically, for random variables $X, Y$ and confounder $Z$:
-\begin{equation}
-    \text{Cov}(X, Y) \neq \sum_{z} P(Z = z) \cdot \text{Cov}(X, Y \mid Z = z)
-\end{equation}
-\end{formulabox}
-
-\begin{itemize}
-    \item \textbf{Iris Example:} Globally, $\text{Corr}(\text{sepal\_length}, \text{sepal\_width}) = -0.12$ (slightly negative). Conditioned within species:
-    \begin{equation}
-        r_{\text{setosa}} = +0.74, \quad r_{\text{versicolor}} = +0.53, \quad r_{\text{virginica}} = +0.46
-    \end{equation}
-    The species is a confounder: *setosa* flowers have short but very wide sepals, whereas the other species have longer but narrower sepals.
-    \item \textbf{NordicMart Example:} Globally, $\text{Corr}(\text{annual\_spend}, \text{web\_sessions\_month}) = +0.37$. Within tiers:
-    \begin{equation}
-        r_{\text{Basic}} = +0.04, \quad r_{\text{Silver}} = +0.04, \quad r_{\text{Gold}} = -0.00
-    \end{equation}
-    Browsing the website does \textbf{not} cause higher spending. Loyalty tier is the common cause: Gold customers independently spend more and visit the website more frequently.
-\end{itemize}
-
-\subsection{Taxonomy of Missing Data (Rubin, 1976)}
-Handling missing values ($\text{NaN}$) depends critically on the missingness mechanism:
+\subsection{Data Quality: Sentinels, Outliers \& Informative Missingness}
+Real-world data is never clean. Three specific phenomena from the lecture slides and lab:
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{MCAR (Missing Completely at Random):} $P(\text{Missing} \mid X, Y) = P(\text{Missing})$. Missingness is unrelated to observed or unobserved data.
-    \begin{itemize}
-        \item \textit{Diagnosis in Lab:} For `age`, churn rate with missing age is $12.6\%$ vs $11.9\%$ when observed (statistically indistinguishable). Imputation by median is safe and unbiased.
-    \end{itemize}
-    \item \textbf{MAR (Missing at Random):} $P(\text{Missing} \mid X, Y) = P(\text{Missing} \mid X)$. Missingness depends on observed features but not on the missing value itself.
-    \item \textbf{MNAR (Missing Not at Random / Informative Missingness):} $P(\text{Missing} \mid X, Y)$ depends directly on the unobserved variable itself or target $Y$.
-    \begin{itemize}
-        \item \textit{Diagnosis in Lab:} For `web_sessions_month`, customers with missing values have a churn rate of \textbf{$23.1\%$}, compared to \textbf{$9.6\%$} for observed sessions ($2.4\times$ higher risk).
-        \item \textit{Action:} Missingness is an informative behavioral feature. We must create an explicit binary indicator flag `web_sessions_isna` prior to imputing values.
-    \end{itemize}
+    \item \textbf{Nulls in Disguise (Sentinel Values, \textit{Slide 14}):} Storing $0$ or $999$ when information is missing or not applicable (e.g., $999$ in \lstinline!days_since_last_buy! for customers who never bought, or $0$ in \lstinline!age!). Leaving them as numbers violently distorts means and standard deviations.
+    \item \textbf{Outliers: Noise vs. Rare Processes (\textit{Slide 26--28}):} Outliers are points considerably different from the rest. They can stem from corrupted data (noise) OR genuine rare events/processes. In customer data, high spenders are legitimate business assets (``whales''), not errors.
+    \item \textbf{Informative Missingness:} Missing data is not always accidental. If the churn rate among missing values is substantially higher ($23\%$ vs $9\%$), the absence of data is itself a powerful predictive signal.
+    \item \textbf{Simpson's Paradox (Confounders):} An aggregate correlation across the entire dataset can be positive even when the correlation within every subgroup is zero or negative. A confounding variable (like \lstinline!tier!) drives both attributes independently.
 \end{enumerate}
 
-\subsection{Class Imbalance and the Fallacy of Raw Accuracy}
-In binary classification with target $y \in \{0, 1\}$, where the positive class is rare:
-\begin{formulabox}
-\textbf{The Trivial Majority-Class Classifier:}
-\begin{equation}
-    \hat{y}_{\text{trivial}} = \arg\max_{c \in \{0, 1\}} P(y = c) = 0 \quad (\forall i)
-\end{equation}
-In NordicMart, non-churners represent $88.0\%$ ($n_0 = 2640$) and churners represent $12.0\%$ ($n_1 = 360$).
-\begin{equation}
-    \text{Accuracy}(\hat{y}_{\text{trivial}}) = 88.0\%, \quad \text{Recall}(\hat{y}_{\text{trivial}}) = \frac{0}{360} = 0.0\%
-\end{equation}
-\end{formulabox}
-An accuracy of $88\%$ provides zero commercial value. Models trained on imbalanced data must be evaluated using Precision, Recall, $F_1$-score, PR-AUC, or cost-utility matrices.
-
-\vspace{1em}
-\newpage
+\vspace{0.8em}
 
 % ==============================================================================
-% 2. CANONICAL CODE SNIPPETS & EDA RECIPES
+% 2. THE 7-STEP EDA CHECKLIST
 % ==============================================================================
-\section{Canonical Code Snippets \& EDA Recipes}
+\section{The 7-Step EDA Checklist}
 
-\subsection{Recipe 1: Data Audit, Identifier Isolation \& Ordered Categoricals}
+The standard EDA protocol followed across every laboratory:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Dataset Kind \& Types:} Inspect file format, delimiter, headers, column types. Isolate identifiers.
+    \item \textbf{Summaries \& Distributions:} Compute five-number summaries (\lstinline!describe()!); inspect symmetry and plot histograms with multiple bin widths.
+    \item \textbf{Missing Values Audit:} Count \lstinline!NaN! values and evaluate whether missingness correlates with the target.
+    \item \textbf{Data Quality Checks:} Search for sentinel codes ($999, 0$), impossible values ($\le 0$), Tukey IQR outliers, and duplicated records.
+    \item \textbf{Target Analysis:} Check class balance (\lstinline!value_counts(normalize=True)!) and evaluate the trivial majority model baseline.
+    \item \textbf{Feature $\times$ Target Associations:} Bivariate plots (box plots by class, scatter plots with hue, stratified correlations).
+    \item \textbf{Findings \& Preparation Log (EDA Log):} Record every finding, the supporting evidence, and the resulting engineering decision.
+\end{enumerate}
+
+\vspace{0.8em}
+
+% ==============================================================================
+% 3. PRACTICAL CODE RECIPES: HOW, WHY & WHAT FOR
+% ==============================================================================
+\section{Practical Code Recipes: How, Why \& What For}
+
+\subsection{Recipe 1: Safe Working Copy \& Cardinality Audit}
 \begin{lstlisting}[language=Python]
-import pandas as pd
-import numpy as np
-
-# 1. Load raw data (never mutate df directly)
+# HOW:
 df = pd.read_csv("nordicmart_customers.csv")
-customers = df.copy()
+customers = df.copy()  # Never mutate the raw table df!
 
-# 2. Audit cardinality: detect constants and unique identifiers
-cardinality = customers.nunique()
-identifiers = cardinality[cardinality == len(customers)].index.tolist()
-constants = cardinality[cardinality <= 1].index.tolist()
+print(customers.nunique())
+\end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} Keeping \lstinline!df! untouched ensures that raw data integrity can be verified at any point with unit assertions. Calling \lstinline!nunique()! exposes constant columns (cardinality 1) and unique IDs (cardinality $= N$).
+    \item \textbf{What For:} Immediately flags \lstinline!customer_id! (3000 distinct) as an identifier to drop from features, and \lstinline!postcode! (1 distinct value: 40100) as a zero-variance column to remove.
+\end{itemize}
 
-# 3. Clean string codes and enforce ordinal hierarchies
-customers["postcode"] = customers["postcode"].astype("string").str.replace(r"\.0$", "", regex=True)
+\subsection{Recipe 2: Enforcing Ordered Categoricals \& String Types}
+\begin{lstlisting}[language=Python]
+# HOW:
+customers["postcode"] = (
+    customers["postcode"]
+    .astype("string")
+    .str.replace(r"\.0$", "", regex=True)
+)
 customers["tier"] = pd.Categorical(
     customers["tier"],
     categories=["Basic", "Silver", "Gold"],
     ordered=True
 )
 \end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} Pandas reads nullable integer columns as \lstinline!float64!, giving postcodes like \texttt{40100.0}. We cast to string and strip the decimal. Setting \lstinline!ordered=True! guarantees that plots and sort operations follow the domain hierarchy rather than alphabetical order (\texttt{Basic < Gold < Silver}).
+    \item \textbf{What For:} Prevents category order errors in bar charts and prepares ordinal features for monotonic encoding.
+\end{itemize}
 
-\subsection{Recipe 2: Sentinel Value Extraction \& Binary Indicator Generation}
+\subsection{Recipe 3: Catching Sentinels (``Nulls in Disguise'') \& Adding Indicator Flags}
 \begin{lstlisting}[language=Python]
-# Detect hidden database sentinels (e.g. 999 days, 0 age)
-# Step 1: Create explicit indicator feature before recoding
+# HOW:
+# 1. Create a binary indicator flag BEFORE recoding
 customers["never_bought"] = (customers["days_since_last_buy"] == 999).astype(int)
 
-# Step 2: Replace sentinel values with NaN (avoid deprecated inplace=True)
+# 2. Recode sentinel codes to NaN using functional replacement
 customers["days_since_last_buy"] = customers["days_since_last_buy"].replace(999, np.nan)
 customers["age"] = customers["age"].replace(0, np.nan)
 \end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} The value 999 is a sentinel code for customers who never purchased; 0 in age is a placeholder for unknown age. Avoid \lstinline!inplace=True! because it is deprecated in modern pandas and triggers chained assignment warnings.
+    \item \textbf{What For:} Replaces artificial numbers with proper missing values so that recency averages drop from 69.5 to 50.2 days (unskewed), while \lstinline!never_bought! retains the business signal for the classifier.
+\end{itemize}
 
-\subsection{Recipe 3: Informative Missingness Diagnostic}
+\subsection{Recipe 4: Diagnosing Informative Missingness (MNAR)}
 \begin{lstlisting}[language=Python]
-# Diagnostic: Check if missingness predicts the target
-missing_diagnostic = customers.groupby(customers["web_sessions_month"].isna())["churned"].agg(
-    churn_rate="mean",
-    count="count"
-)
-print(missing_diagnostic)
-# If churn rate differs significantly between True and False -> MNAR -> Keep indicator flag!
+# HOW:
+print(customers.groupby(customers["web_sessions_month"].isna())["churned"].mean())
+print(customers.groupby(customers["age"].isna())["churned"].mean())
 \end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} By grouping the target by the boolean mask of \lstinline!.isna()!, we test whether the probability of missingness depends on the target class.
+    \item \textbf{What For:} 
+    \begin{itemize}
+        \item \lstinline!web_sessions_month!: Missing churn rate is \textbf{23.1\%} vs \textbf{9.6\%} for observed. This is \textbf{informative missingness (MNAR)}. We must keep a missingness indicator flag before imputation.
+        \item \lstinline!age!: Missing churn rate is \textbf{12.6\%} vs \textbf{11.9\%} observed. This is \textbf{random missingness (MCAR)}. Standard median imputation without an extra flag is completely safe.
+    \end{itemize}
+\end{itemize}
 
-\subsection{Recipe 4: Subgroup-Stratified Correlation (Checking Confounders)}
+\subsection{Recipe 5: Tukey IQR Outlier Auditing with Subgroup Conditioning}
 \begin{lstlisting}[language=Python]
-# Check global Pearson correlation vs intra-group correlation
-r_global = customers["annual_spend"].corr(customers["web_sessions_month"])
-print(f"Global correlation: {r_global:.2f}")
+# HOW:
+q1 = customers["annual_spend"].quantile(0.25)
+q3 = customers["annual_spend"].quantile(0.75)
+iqr = q3 - q1
+upper_fence = q3 + 1.5 * iqr
 
-print("Intra-group correlations by tier:")
-for tier_name, group in customers.groupby("tier", observed=False):
-    r_sub = group["annual_spend"].corr(group["web_sessions_month"])
-    print(f"  Tier {tier_name:6s}: {r_sub:.2f}")
+outliers = customers[customers["annual_spend"] > upper_fence]
+print(f"Total candidate outliers: {len(outliers)}")
+print(outliers["tier"].value_counts(sort=False))
+
+# Subgroup boxplot
+customers.boxplot(column="annual_spend", by="tier")
+plt.suptitle("")
+plt.show()
 \end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} Global Tukey fences ($> \$1843.24$) flag 204 points as candidate outliers. However, breaking down by tier shows that 131 belong to Gold and 63 to Silver.
+    \item \textbf{What For:} Prevents the catastrophic mistake of deleting high-value customers. The boxplot proves that spend is conditioned by tier. They are legitimate high spenders (``whales''), not noisy measurement errors.
+\end{itemize}
 
-\subsection{Recipe 5: Bivariate Evaluation of Numeric Features vs Target}
+\subsection{Recipe 6: Target Imbalance Audit \& Trivial Model Baseline}
 \begin{lstlisting}[language=Python]
-import matplotlib.pyplot as plt
-import seaborn as sns
+# HOW:
+print(customers["churned"].value_counts(normalize=True))
 
+actual = customers["churned"]
+predicted = pd.Series(0, index=customers.index) # Trivial model: always predict '0'
+
+print(pd.crosstab(actual, predicted, rownames=["actual"], colnames=["predicted"]))
+accuracy = (actual == predicted).mean()
+recall = ((actual == 1) & (predicted == 1)).sum() / (actual == 1).sum()
+print(f"Accuracy: {accuracy:.1%}, Recall: {recall:.1%}")
+\end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} Demonstrates the Base Rate Fallacy. The trivial model achieves 88\% accuracy simply by predicting that nobody churns.
+    \item \textbf{What For:} Establishes that accuracy is useless for this project. The final machine learning model must be evaluated on minority class recall, $F_1$-score, or PR-AUC.
+\end{itemize}
+
+\subsection{Recipe 7: Bivariate Feature Selection (Boxplots per Class)}
+\begin{lstlisting}[language=Python]
+# HOW:
 fig, axs = plt.subplots(1, 2, figsize=(12, 4))
-# Comparing discriminative capacity across classes
 sns.boxplot(data=customers, x="churned", y="days_since_last_buy", ax=axs[0])
-axs[0].set_title("Recency by Churn (High separation)")
+axs[0].set_title("Recency by Churn")
 
 sns.boxplot(data=customers, x="churned", y="tickets_90d", ax=axs[1])
-axs[1].set_title("Tickets by Churn (Negligible separation)")
+axs[1].set_title("Tickets by Churn")
 plt.tight_layout()
 plt.show()
 \end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} Boxplots of features grouped by the binary target visually reveal separation between class distributions.
+    \item \textbf{What For:} \lstinline!days_since_last_buy! shows clear separation (churners have much higher recency; promising feature), whereas \lstinline!tickets_90d! shows almost complete box overlap (weak standalone discriminator).
+\end{itemize}
 
-\vspace{1em}
+\subsection{Recipe 8: Stratified Correlation Matrix (Catching Simpson's Paradox)}
+\begin{lstlisting}[language=Python]
+# HOW:
+# 1. Pearson and Spearman on numeric features ONLY (exclude customer_id)
+numeric_cols = ["age", "annual_spend", "days_since_last_buy", "web_sessions_month", "tickets_90d", "churned"]
+sns.heatmap(customers[numeric_cols].corr(method="pearson"), annot=True, fmt=".2f", cmap="coolwarm")
+plt.show()
+
+# 2. Check for confounders: overall vs intra-tier correlation
+print("Overall corr:", customers["annual_spend"].corr(customers["web_sessions_month"]))
+for tier, group in customers.groupby("tier", observed=False):
+    print(f"Tier {tier:6s}:", group["annual_spend"].corr(group["web_sessions_month"]))
+\end{lstlisting}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Why:} Overall correlation is $+0.37$, suggesting that website visits cause spending. But inside each tier, correlation drops to $0.04$ (Basic), $0.04$ (Silver), and $-0.00$ (Gold).
+    \item \textbf{What For:} Uncovers \textbf{Simpson's Paradox}. Tier is a confounding variable: Gold members spend more and browse more independently. Web sessions do NOT drive spending.
+\end{itemize}
+
+\vspace{0.8em}
 
 % ==============================================================================
-% 3. PITFALLS, TRAPS & ANTI-PATTERNS
+% 4. KEY PITFALLS & PRACTICAL TRAPS
 % ==============================================================================
-\section{Pitfalls, Traps \& Anti-Patterns}
+\section{Key Pitfalls \& Practical Traps}
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Trapping Identifiers in Feature Sets (Data Leakage):}\\
-    \textit{Anti-pattern:} Passing \lstinline!customer_id! into Pearson correlation matrices or decision trees.\\
-    \textit{Consequence:} In a decision tree, an identifier with cardinality equal to $N$ can split the entire dataset perfectly, producing training accuracy $100\%$ but zero generalization capability.
+    \item \textbf{Evaluating Duplicates on a Single Column instead of Full Rows:}\\
+    \textit{Anti-pattern:} \lstinline!iris["col"].duplicated().sum()! counts recurring values in one feature (completely normal).\\
+    \textit{Correct practice:} \lstinline!iris.duplicated().sum()! checks for identical samples across all features simultaneously.
     
-    \item \textbf{Confusing Column Duplicates with Row Duplicates:}\\
-    \textit{Anti-pattern:} Calling \lstinline!customers["col"].duplicated().sum()! instead of \lstinline!customers.duplicated().sum()!.\\
-    \textit{Consequence:} Repeating values within a single continuous or categorical column is standard. A duplicated record exists only when \textbf{all features simultaneously match} across two rows.
+    \item \textbf{Including Identifiers in Heatmaps and Models:}\\
+    \textit{Anti-pattern:} Passing \lstinline!customer_id! to \lstinline!corr()! or decision trees creates spurious correlation with sequential IDs and risks severe overfitting. Always filter out IDs.
 
-    \item \textbf{The In-Place Mutation Trap (`inplace=True`):}\\
-    \textit{Anti-pattern:} \lstinline!customers["age"].replace(0, np.nan, inplace=True)!, which is deprecated in modern pandas (raises \texttt{FutureWarning} or \texttt{SettingWithCopyWarning}).\\
-    \textit{Best practice:} Always use explicit functional reassignment: \lstinline!customers["age"] = customers["age"].replace(0, np.nan)!.
+    \item \textbf{Relying on a Single Histogram Bin Width:}\\
+    \textit{Anti-pattern:} Plotting \lstinline!petal_length! with 5 bins makes it look like a single unimodal distribution.\\
+    \textit{Correct practice:} Always compare multiple bin widths (e.g. 5, 15, 40) or use the adaptive Freedman–Diaconis rule (\lstinline!bins="fd"!). In Iris, 15 bins clearly reveals the separate cluster of \textit{setosa}.
 
-    \item \textbf{Naive Imputation under Informative Missingness (MNAR):}\\
-    \textit{Anti-pattern:} Directly replacing missing values in \lstinline!web_sessions_month! with the column median without generating a missing indicator flag.\\
-    \textit{Consequence:} Eliminates the strongest predictive signal in the dataset ($23.1\%$ churn vs $9.6\%$).
+    \item \textbf{Destructive In-Place Data Imputation:}\\
+    \textit{Anti-pattern:} Imputing \lstinline!web_sessions_month! with the column median without generating \lstinline!web_sessions_isna! destroys the strongest churn predictor in the dataset.
 \end{enumerate}
-
-\vspace{1em}
-
-% ==============================================================================
-% 4. MASTER-LEVEL EXAM & DEFENSE QUESTIONS
-% ==============================================================================
-\section{Master-Level Exam \& Defense Questions}
-
-\begin{definitionbox}[Question 1: Mathematical Mechanism of Simpson's Paradox]
-\textbf{Question:} Formally explain how an overall correlation between two continuous variables can be positive while the correlation within every subgroup is zero or negative. How should an ML engineer detect this during EDA before training a regression model?\\
-\textbf{Answer:} By the law of total covariance:
-\[
-\text{Cov}(X, Y) = \mathbb{E}_Z[\text{Cov}(X, Y \mid Z)] + \text{Cov}_Z(\mathbb{E}[X \mid Z], \mathbb{E}[Y \mid Z])
-\]
-Even if within-group covariance $\text{Cov}(X, Y \mid Z = z) \approx 0$ for all $z$, the between-group covariance $\text{Cov}_Z(\mathbb{E}[X \mid Z], \mathbb{E}[Y \mid Z])$ can be large and positive if group centroids move jointly in the $(X, Y)$ plane. In NordicMart, $\mathbb{E}[\text{spend} \mid \text{Gold}] > \mathbb{E}[\text{spend} \mid \text{Basic}]$ and $\mathbb{E}[\text{sessions} \mid \text{Gold}] > \mathbb{E}[\text{sessions} \mid \text{Basic}]$. An ML engineer detects this by generating conditional scatter plots colored by categorical features and computing intra-group correlation matrices across all nominal/ordinal variables.
-\end{definitionbox}
-
-\begin{definitionbox}[Question 2: Pearson vs. Spearman Divergence on Skewed Targets]
-\textbf{Question:} In NordicMart, the correlation between \lstinline!days_since_last_buy! and \lstinline!churned! is $r = 0.38$ under Pearson, but drops to $\rho = 0.28$ under Spearman. Why does this divergence occur, and which metric provides a more faithful assessment of predictive utility?\\
-\textbf{Answer:} Pearson correlation assesses the degree of strictly linear association and is heavily weighted by points in the extreme right tail of \lstinline!days_since_last_buy! due to squared deviation terms $(x_i - \bar{x})^2$. Spearman correlation replaces raw numerical values with their fractional ranks ($1$ to $n$), eliminating the disproportionate leverage of extreme recency values. Because machine learning models (especially decision trees and non-linear kernels) depend on monotonic ordering rather than strict linearity, Spearman $\rho$ gives a more robust estimate of whether sorting instances by recency separates churners.
-\end{definitionbox}
-
-\begin{definitionbox}[Question 3: Handling Informative Missingness in Production Pipelines]
-\textbf{Question:} Suppose you must deploy a logistic regression model on NordicMart data. How should you treat \lstinline!web_sessions_month! given that missingness is MNAR and represents $18\%$ of rows?\\
-\textbf{Answer:} 
-1. \textbf{Missingness Indicator Feature:} Create a binary dummy feature $M_{\text{web}} = \mathbf{1}_{\{\text{web\_sessions\_month} = \text{NaN}\}}$.
-2. \textbf{Imputation:} Impute the missing values in the continuous feature with a central location estimate (e.g. median of observed values) or a constant (e.g. $0$).
-3. \textbf{Regression Formulation:} The linear model becomes:
-\[
-\hat{y} = \sigma\left(\beta_0 + \beta_1 x_{\text{web}} + \beta_2 M_{\text{web}} + \dots\right)
-\]
-When $M_{\text{web}} = 1$, $\beta_2$ explicitly captures the baseline shift in log-odds associated with missingness, preventing the imputed constant from corrupting the estimation of $\beta_1$.
-\end{definitionbox}
-
-\begin{definitionbox}[Question 4: Proof of Zero Breakdown Point for the Sample Mean]
-\textbf{Question:} Prove mathematically that the breakdown point of the sample mean $\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$ is $\varepsilon^* = 0$, whereas the sample median has $\varepsilon^* = 0.5$.\\
-\textbf{Answer:} 
-Let $\mathcal{X} = \{x_1, \dots, x_n\}$ and replace a single observation $x_1$ with an arbitrary corrupted value $x_1^* \in \mathbb{R}$. The corrupted mean is:
-\[
-\bar{x}^* = \frac{x_1^* + \sum_{i=2}^n x_i}{n} \implies \lim_{x_1^* \to \infty} |\bar{x} - \bar{x}^*| = \infty
-\]
-Since a single corrupted data point ($m = 1$) out of $n$ can drive the estimate to infinity:
-\[
-\varepsilon^* = \lim_{n \to \infty} \frac{1}{n} = 0
-\]
-For the sample median, if $m < \lfloor \frac{n+1}{2} \rfloor$ points are corrupted, the median is constrained by the remaining uncorrupted order statistics $x_{(k)}$. Thus, $\varepsilon^* = \frac{\lfloor (n-1)/2 \rfloor}{n} \to 0.5$ as $n \to \infty$.
-\end{definitionbox}
 
 \end{document}

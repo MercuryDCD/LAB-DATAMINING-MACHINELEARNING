@@ -15,7 +15,8 @@ Este archivo define el flujo de trabajo recurrente semanal y los estándares té
     - `labXX-<tema>-dani.ipynb`: Cuaderno de trabajo de Dani.
   - `finals/`: Carpeta central que contiene toda la estructura de archivos `.tex` de apuntes, notas y resúmenes para Overleaf.
     - `finals/main.tex`: Documento maestro para compilar todos los laboratorios en un único manual de estudio mediante `\input{...}` y el paquete `docmute`.
-    - `finals/labXX-<tema>-notes.tex`: Documentos modulares, autocontenidos y de alta densidad técnica por laboratorio.
+    - `finals/labXX-<tema>-notes.tex`: Documentos modulares por laboratorio, orientados a la práctica y al código.
+  - Apuntes de clase de referencia: ubicados en la carpeta padre (`../Machine Learning/` y `../Data Mining/`).
 
 ---
 
@@ -62,22 +63,28 @@ Generar el documento modular correspondiente en `finals/labXX-<tema>-notes.tex` 
 
 ## 3. Estándar para Apuntes en LaTeX (`finals/` & `latex-notes-generator`)
 
-### Enfoque: Documentos Modulares con Compilador Maestro
+### Enfoque: Práctico, Modular y Centrado en Código
 - **Ubicación:** `finals/labXX-<tema>-notes.tex` y compilador `finals/main.tex`.
-- **Ventaja pedagógica y técnica:** Cada laboratorio genera un documento conciso (3–6 páginas) inmediatamente tras cerrar el cuaderno. Es 100% autocontenido para compilar individualmente en Overleaf, y gracias al paquete `docmute` en `main.tex`, puede compilarse como un único libro completo sin colisión de preámbulos.
-- **Idioma del documento:** **Inglés** (idioma vehicular de la asignatura y de los notebooks), con explicaciones y justificaciones de nivel de máster.
+- **Filosofía didáctica:** 
+  - **Foco en el código:** Cómo se usa, por qué se hace así y para qué sirve en el pipeline de ML.
+  - **Teoría concisa y aplicada:** Extraída directamente de las diapositivas de la asignatura (Prof. Claudio Sartori) y del laboratorio, sin demostraciones matemáticas densas ni desarrollos innecesarios.
+  - **Sin preguntas de examen:** El documento sirve como guía rápida de referencia y recetario técnico.
+- **Idioma del documento:** **Inglés** (idioma vehicular de la asignatura y de los notebooks).
 
 ### Estructura Obligatoria de Cada Fichero de Notas:
-1. **Core Machine Learning Concepts & Theory:**
-   - Fundamentos teóricos aplicados en el lab (escalas de medición de Stevens, asimetría y curtosis, robustez estadística y punto de ruptura, desbalanceo de clases y falacia del accuracy, paradoja de Simpson, taxonomía de valores perdidos MCAR/MAR/MNAR).
-   - Uso obligatorio de cajas destacadas `\begin{definitionbox}[Concepto]` y `\begin{formulabox}` para teoremas, definiciones y fórmulas.
-2. **Canonical Code Snippets & EDA Recipes:**
-   - Fragmentos de código idiomático y reutilizable con `listings` (`lstdefinestyle{moderncode}`).
-   - Recetas para: detección de centinelas, flags de missingness, reglas Tukey IQR, correlación bivariada vs estratificada, matrices de confusión triviales.
-3. **Pitfalls, Traps & Anti-patterns:**
-   - Errores conceptuales y de implementación típicos (ej. confundir valores duplicados por columna con filas duplicadas; evaluar modelos con accuracy en clases raras; inferir causalidad de correlaciones agregadas).
-4. **Master-Level Exam & Defense Questions:**
-   - 3 a 5 preguntas técnicas profundas de auto-evaluación con sus respectivas respuestas argumentadas (estilo examen oral / preguntas de profesor de máster).
+1. **Essential Theory \& Concepts (Class Notes \& Lab Context):**
+   - Conceptos clave de las diapositivas de clase (escalas de medida de Stevens, valores centinela / "nulls in disguise", outliers vs procesos raros, correlación agregada vs estratificada, desbalanceo de clases).
+   - Uso de cajas destacadas `\begin{definitionbox}[Concepto]` para reglas clave.
+2. **The EDA Checklist / Workflow:**
+   - La secuencia metodológica aplicada en el laboratorio (inspección de tipos $\to$ univariado $\to$ calidad y centinelas $\to$ target $\to$ bivariado/confusión $\to$ registro de decisiones).
+3. **Practical Code Recipes: How, Why \& What For:**
+   - Fragmentos de código idiomático con `listings` (`lstdefinestyle{moderncode}`).
+   - Cada receta debe detallar:
+     - **How:** Cómo se invoca la función o método de Pandas/Seaborn.
+     - **Why:** Por qué se elige ese método frente a alternativas ingenuas (evitar mutaciones `inplace`, evitar distorsiones por escalas).
+     - **What For:** Para qué sirve ese paso en la preparación de datos para los modelos.
+4. **Key Pitfalls \& Practical Traps:**
+   - Errores típicos de programación y concepto en el laboratorio (duplicados por columna vs fila, identificadores filtrados en matrices numéricas, imputación destructiva en datos informativos).
 
 ### Reglas de Calidad LaTeX:
 - **PROHIBIDO COMPILAR EN LOCAL:** No invocar `pdflatex` ni generar PDFs localmente para evitar errores espurios por paquetes de TeX Live faltantes. El usuario compila directamente en Overleaf.
