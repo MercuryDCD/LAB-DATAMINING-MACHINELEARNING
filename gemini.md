@@ -13,7 +13,9 @@ Este archivo define el flujo de trabajo recurrente semanal y los estándares té
   - `ML_Lab/notebooks/labXX-<tema>/`: Cuadernos de cada laboratorio.
     - `labXX-<tema>.ipynb`: Plantilla original de la cátedra.
     - `labXX-<tema>-dani.ipynb`: Cuaderno de trabajo de Dani.
-  - `ML_Lab/notes/`: Apuntes técnicos generados en LaTeX (`.tex`) listos para Overleaf.
+  - `finals/`: Carpeta central que contiene toda la estructura de archivos `.tex` de apuntes, notas y resúmenes para Overleaf.
+    - `finals/main.tex`: Documento maestro para compilar todos los laboratorios en un único manual de estudio mediante `\input{...}` y el paquete `docmute`.
+    - `finals/labXX-<tema>-notes.tex`: Documentos modulares, autocontenidos y de alta densidad técnica por laboratorio.
 
 ---
 
@@ -53,29 +55,29 @@ git commit -m "Completar y corregir labXX-<tema>: respuestas conceptuales y codi
 git push origin main
 ```
 
-### Paso 5: Generación de Material de Estudio en LaTeX
-Generar un documento modular independiente por laboratorio en `ML_Lab/notes/labXX-notes.tex` mediante la skill `latex-notes-generator`.
+### Paso 5: Generación de Material de Estudio en LaTeX (`finals/`)
+Generar el documento modular correspondiente en `finals/labXX-<tema>-notes.tex` mediante la skill `latex-notes-generator`, e incluirlo en `finals/main.tex`.
 
 ---
 
-## 3. Estándar para Apuntes en LaTeX (`latex-notes-generator`)
+## 3. Estándar para Apuntes en LaTeX (`finals/` & `latex-notes-generator`)
 
-### Enfoque: Documentos Modulares por Laboratorio
-- **Ubicación:** `ML_Lab/notes/labXX-<tema>-notes.tex`.
-- **Ventaja pedagógica y técnica:** Permite generar apuntes concisos (3–6 páginas) inmediatamente tras cerrar cada laboratorio sin degradación de contexto. Son autocontenidos para importar directamente a Overleaf, y pueden combinarse al final del semestre mediante un archivo maestro `main.tex` con `\input{...}`.
+### Enfoque: Documentos Modulares con Compilador Maestro
+- **Ubicación:** `finals/labXX-<tema>-notes.tex` y compilador `finals/main.tex`.
+- **Ventaja pedagógica y técnica:** Cada laboratorio genera un documento conciso (3–6 páginas) inmediatamente tras cerrar el cuaderno. Es 100% autocontenido para compilar individualmente en Overleaf, y gracias al paquete `docmute` en `main.tex`, puede compilarse como un único libro completo sin colisión de preámbulos.
 - **Idioma del documento:** **Inglés** (idioma vehicular de la asignatura y de los notebooks), con explicaciones y justificaciones de nivel de máster.
 
 ### Estructura Obligatoria de Cada Fichero de Notas:
 1. **Core Machine Learning Concepts & Theory:**
-   - Fundamentos teóricos aplicados en el lab (escalas de medición, distribuciones, robustez estadística, desbalanceo de clases, paradoja de Simpson, taxonomía de missing data).
-   - Uso de cajas destacadas `\begin{definitionbox}[Concepto]` y `\begin{formulabox}` para teoremas y fórmulas.
+   - Fundamentos teóricos aplicados en el lab (escalas de medición de Stevens, asimetría y curtosis, robustez estadística y punto de ruptura, desbalanceo de clases y falacia del accuracy, paradoja de Simpson, taxonomía de valores perdidos MCAR/MAR/MNAR).
+   - Uso obligatorio de cajas destacadas `\begin{definitionbox}[Concepto]` y `\begin{formulabox}` para teoremas, definiciones y fórmulas.
 2. **Canonical Code Snippets & EDA Recipes:**
    - Fragmentos de código idiomático y reutilizable con `listings` (`lstdefinestyle{moderncode}`).
    - Recetas para: detección de centinelas, flags de missingness, reglas Tukey IQR, correlación bivariada vs estratificada, matrices de confusión triviales.
 3. **Pitfalls, Traps & Anti-patterns:**
-   - Errores conceptuales y de implementación típicos (ej. confundir valores duplicados por columna con filas duplicadas; accuracy engañosa en clases raras; inferir causalidad de correlaciones agregadas).
+   - Errores conceptuales y de implementación típicos (ej. confundir valores duplicados por columna con filas duplicadas; evaluar modelos con accuracy en clases raras; inferir causalidad de correlaciones agregadas).
 4. **Master-Level Exam & Defense Questions:**
-   - 3 a 5 preguntas técnicas profundas de auto-evaluación con sus respectivas respuestas argumentadas (estilo examen oral / preguntas de profesor).
+   - 3 a 5 preguntas técnicas profundas de auto-evaluación con sus respectivas respuestas argumentadas (estilo examen oral / preguntas de profesor de máster).
 
 ### Reglas de Calidad LaTeX:
 - **PROHIBIDO COMPILAR EN LOCAL:** No invocar `pdflatex` ni generar PDFs localmente para evitar errores espurios por paquetes de TeX Live faltantes. El usuario compila directamente en Overleaf.

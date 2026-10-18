@@ -1,0 +1,117 @@
+\documentclass[11pt,a4paper]{article}
+
+% ==============================================================================
+% MASTER COMPILER FOR MACHINE LEARNING & DATA MINING NOTES
+% Master in Artificial Intelligence — University of Bologna (UniBo)
+% ==============================================================================
+
+% 1. Page Geometry & Typography
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.15}
+
+% 2. Math & Symbols
+\usepackage{amsmath, amssymb}
+
+% 3. List spacing
+\usepackage{enumitem}
+\setlist{itemsep=0.4em, topsep=0.4em}
+
+% 4. Callout boxes (tcolorbox)
+\usepackage[many]{tcolorbox}
+\newtcolorbox{definitionbox}[1][]{
+    colback=blue!3!white,
+    colframe=blue!60!black,
+    fonttitle=\bfseries,
+    title=#1,
+    arc=2mm
+}
+\newtcolorbox{formulabox}{
+    colback=gray!5!white,
+    colframe=gray!40!black,
+    boxrule=0.5pt,
+    arc=1mm
+}
+
+% 5. Header & Footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Machine Learning \& Data Mining} --- Laboratory Handbook}
+\fancyhead[R]{Master in AI --- UniBo}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% 6. Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    urlcolor=blue!70!black,
+    citecolor=green!50!black
+}
+
+% 7. Code listings configuration
+\usepackage{xcolor}
+\usepackage{listings}
+\definecolor{codegreen}{rgb}{0.12, 0.55, 0.15}
+\definecolor{codegray}{rgb}{0.45, 0.45, 0.45}
+\definecolor{codepurple}{rgb}{0.55, 0.10, 0.70}
+\definecolor{codeblue}{rgb}{0.05, 0.25, 0.75}
+\definecolor{backcolour}{rgb}{0.97, 0.98, 0.99}
+\definecolor{boxframe}{rgb}{0.80, 0.85, 0.90}
+
+\lstdefinestyle{moderncode}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    numbers=left,
+    numbersep=6pt,
+    tabsize=4,
+    frame=single,
+    rulecolor=\color{boxframe},
+    xleftmargin=1.5em,
+    framexleftmargin=1.5em
+}
+\lstset{style=moderncode}
+
+% 8. Modular inclusion support (docmute allows \input of complete standalone .tex files)
+\usepackage{docmute}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge \textbf{Machine Learning \& Data Mining}\par}
+    \vspace{0.5cm}
+    {\LARGE Laboratory Technical Handbook \& Exam Review\par}
+    \vspace{1.5cm}
+    {\Large \textbf{Master in Artificial Intelligence}\par}
+    {\large Università di Bologna (UniBo)\par}
+    \vspace{2cm}
+    \textbf{Student:} Dani\\
+    \textbf{Course Instructor:} Prof. Claudio Sartori\\
+    \vfill
+    {\large Academic Year 2026/2027\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ==============================================================================
+% MODULAR LAB NOTES INCLUSION
+% ==============================================================================
+\input{lab01-eda-notes.tex}
+
+% Future labs will be added here weekly:
+% \newpage
+% \input{lab02-preprocessing-notes.tex}
+
+\end{document}
