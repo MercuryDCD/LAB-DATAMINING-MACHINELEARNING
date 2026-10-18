@@ -87,7 +87,7 @@
 
 \noindent\textbf{Course:} Machine Learning and Data Mining --- Prof. Claudio Sartori\\
 \textbf{Degree:} Master in Artificial Intelligence, Università di Bologna (UniBo)\\
-\textbf{Core Reference:} Lecture Slides \textit{The Data} \& Lab Notebook \texttt{lab01-eda}
+\textbf{Primary Sources:} Lecture Slides \textit{06-ML-b-eda.pdf}, \textit{07-ML-notebooks-toolchain.pdf} \& Lab Notebook \texttt{lab01-eda}
 
 \vspace{0.8em}
 \hrule
@@ -98,47 +98,71 @@
 % ==============================================================================
 \section{Essential Concepts (Class Notes \& Lab Context)}
 
-Exploratory Data Analysis (EDA) is the systematic audit of a dataset before any model training. As emphasized in the course slides: \textit{``Better data quality $\implies$ better results (garbage-in, garbage-out)''}.
+Exploratory Data Analysis (EDA) is the iterative auditing phase that precedes all modeling. As emphasized in the course slides: \textit{``Data are never perfect. Better data quality $\implies$ better results (garbage-in, garbage-out)''}.
+
+\subsection{Why Look Before Modeling? (Anscombe's Warning)}
+As demonstrated by \textbf{Anscombe's Quartet} (\textit{Lecture 6, slides 8--9}): four distinct datasets can possess identical summary statistics (mean $9.0$, variance $11.0$, Pearson correlation $r = 0.816$, and regression line $y = 3.0 + 0.5x$), yet exhibit completely different underlying structures (linear, parabolic, regression with outlier leverage, vertical cluster). Summary statistics alone are blind; visual inspection is mandatory.
 
 \subsection{Attribute Types \& Permitted Operations (Stevens, 1946)}
-From the lecture slides (\textit{The Data}, slide 5), attributes are categorized into four levels. The operations permitted on each level are incremental:
+From \textit{Lecture 6, slides 19--22}, attribute types form a strict hierarchy where operations are cumulative:
 
-\begin{definitionbox}[Data Types Summary (Prof. Sartori's Slides)]
+\begin{definitionbox}[Stevens' Typology in Machine Learning]
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Nominal (Categorical):} Values are distinct labels ($=, \neq$). Operations: Mode, frequency, contingency tables, $\chi^2$ test. \textit{Examples:} \lstinline!class! (Iris species), \lstinline!postcode!.
-    \item \textbf{Ordinal (Categorical):} Values provide an intrinsic ranking ($<, >$). Operations: Median, percentiles, rank correlation. \textit{Example:} \lstinline!tier! ($\text{Basic} < \text{Silver} < \text{Gold}$).
-    \item \textbf{Interval (Numerical):} Differences are meaningful, but zero is arbitrary (no true physical zero). Operations: Mean, standard deviation, Pearson correlation, $t$-tests. \textit{Examples:} Temperature in $^\circ\text{C}$, calendar dates.
-    \item \textbf{Ratio (Numerical):} Possesses a true, univocal physical zero ($0 = \text{absence}$). Operations: All mathematical operations, ratios, percentage variations, geometric mean. \textit{Examples:} Lengths, \lstinline!annual_spend!, counts.
+    \item \textbf{Nominal (Categorical):} Distinguishes equality only ($=, \neq$). Operations: Mode, frequency counts, $\chi^2$ contingency. \textit{Examples:} Iris \lstinline!class!, \lstinline!postcode!.
+    \item \textbf{Ordinal (Categorical):} Provides a transitive ranking ($<, >$). Operations: Median, percentiles, rank order. \textit{Example:} Customer \lstinline!tier! ($\text{Basic} < \text{Silver} < \text{Gold}$).
+    \item \textbf{Interval (Numerical):} Differences are meaningful, but zero is arbitrary (no physical zero). Operations: Addition, subtraction, mean, standard deviation, Pearson $r$. \textit{Examples:} Temperature in $^\circ\text{C}$, calendar dates.
+    \item \textbf{Ratio (Numerical):} True physical zero ($0 \implies$ total absence). Operations: All mathematical operations, ratios, percentage variations, geometric mean. \textit{Examples:} Physical lengths, \lstinline!annual_spend!, discrete counts.
 \end{itemize}
-\textbf{Special Rule for Identifiers (\textit{Slide 11}):} \lstinline!customer_id! is an identifier. Identifiers are \textit{``useful for data manipulation, not for analysis''}. They must always be excluded from feature matrices to prevent artificial memorization.
+\textbf{Rule for Identifiers (\textit{Slide 23}):} \lstinline!customer_id! is an identifier. Identifiers are \textit{``useful for data manipulation, not for analysis''}. They must be removed from the feature matrix to prevent data leakage and trivial memorization.
 \end{definitionbox}
 
 \subsection{Data Quality: Sentinels, Outliers \& Informative Missingness}
-Real-world data is never clean. Three specific phenomena from the lecture slides and lab:
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Nulls in Disguise (Sentinel Values, \textit{Slide 14}):} Storing $0$ or $999$ when information is missing or not applicable (e.g., $999$ in \lstinline!days_since_last_buy! for customers who never bought, or $0$ in \lstinline!age!). Leaving them as numbers violently distorts means and standard deviations.
-    \item \textbf{Outliers: Noise vs. Rare Processes (\textit{Slide 26--28}):} Outliers are points considerably different from the rest. They can stem from corrupted data (noise) OR genuine rare events/processes. In customer data, high spenders are legitimate business assets (``whales''), not errors.
-    \item \textbf{Informative Missingness:} Missing data is not always accidental. If the churn rate among missing values is substantially higher ($23\%$ vs $9\%$), the absence of data is itself a powerful predictive signal.
-    \item \textbf{Simpson's Paradox (Confounders):} An aggregate correlation across the entire dataset can be positive even when the correlation within every subgroup is zero or negative. A confounding variable (like \lstinline!tier!) drives both attributes independently.
+    \item \textbf{Nulls in Disguise (Sentinel Codes, \textit{Slide 41--42}):} A widespread database habit is encoding missing or non-applicable data as numeric constants (e.g., $999$ in \lstinline!days_since_last_buy! for customers who never bought, or $0$ in \lstinline!age!). Leaving $999$ as a number artificially skews the mean from $50.2$ to $69.5$ days.
+    \item \textbf{Outliers: Noise vs. Rare Processes (\textit{Slides 46--49}):} Outliers are values considerably different from the rest. They stem from either \textit{corrupted data (noise)} or \textit{valid rare events}. In customer analytics, high spenders are legitimate high-value customers (``whales''), not errors. Deleting them throws away the most valuable commercial segment.
+    \item \textbf{Informative Missingness (\textit{Slide 44}):} Missing data is not always random. When missingness in \lstinline!web_sessions_month! correlates with a $23.1\%$ churn rate (vs $9.6\%$ when observed), the absence of data is an informative behavioral predictor (MNAR) that requires an indicator flag.
+    \item \textbf{Simpson's Paradox \& Confounders (\textit{Slides 63--64}):} An aggregate correlation can reverse or disappear when data is conditioned on a subgroup. In NordicMart, spend and web sessions show $r = +0.37$ overall, but within every tier $r \approx 0.00$. \lstinline!tier! is a confounder driving both attributes independently.
+    \item \textbf{Class Imbalance \& The Trivial Model Trap (\textit{Slides 51--52}):} When the target is imbalanced ($88\%$ non-churners vs $12\%$ churners), a trivial model predicting ``stays'' for all customers achieves $88\%$ accuracy but detects $0\%$ of churners. Accuracy is deceptive; evaluation requires Precision, Recall, and PR-AUC.
 \end{enumerate}
+
+\subsection{Notebook Engineering Good Practices (\textit{Lecture 7, slides 5--8})}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Hidden State Danger:} The execution state lives in the Python kernel process, not in the notebook JSON file. Out-of-order cell execution causes non-reproducible bugs. Always verify with \textbf{Kernel $\to$ Restart \& Run All}.
+    \item \textbf{Raw Data Immutability:} The raw dataset (\lstinline!df!) must never be modified in-place; all transformations belong exclusively in working copies (\lstinline!customers!).
+\end{itemize}
 
 \vspace{0.8em}
 
 % ==============================================================================
 % 2. THE 7-STEP EDA CHECKLIST
 % ==============================================================================
-\section{The 7-Step EDA Checklist}
+\section{The 7-Step EDA Checklist \& Visualization Matrix}
 
-The standard EDA protocol followed across every laboratory:
+\subsection{The Protocol (Lecture 6, Slide 72)}
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Dataset Kind \& Types:} Inspect file format, delimiter, headers, column types. Isolate identifiers.
-    \item \textbf{Summaries \& Distributions:} Compute five-number summaries (\lstinline!describe()!); inspect symmetry and plot histograms with multiple bin widths.
-    \item \textbf{Missing Values Audit:} Count \lstinline!NaN! values and evaluate whether missingness correlates with the target.
-    \item \textbf{Data Quality Checks:} Search for sentinel codes ($999, 0$), impossible values ($\le 0$), Tukey IQR outliers, and duplicated records.
-    \item \textbf{Target Analysis:} Check class balance (\lstinline!value_counts(normalize=True)!) and evaluate the trivial majority model baseline.
-    \item \textbf{Feature $\times$ Target Associations:} Bivariate plots (box plots by class, scatter plots with hue, stratified correlations).
-    \item \textbf{Findings \& Preparation Log (EDA Log):} Record every finding, the supporting evidence, and the resulting engineering decision.
+    \item \textbf{Kind \& Types:} Inspect dimensions, data types, and isolate unique identifiers.
+    \item \textbf{Univariate Summaries:} Check distribution shapes, mean vs median symmetry, and histogram binning.
+    \item \textbf{Missing Values:} Calculate missingness percentages and evaluate if missingness predicts the target.
+    \item \textbf{Data Quality:} Unmask sentinel codes, impossible values, Tukey IQR outliers, and duplicated rows.
+    \item \textbf{Target Analysis:} Inspect class balance and benchmark against the trivial majority classifier.
+    \item \textbf{Bivariate Associations:} Feature $\times$ Target separation, correlation matrices, and confounder checks.
+    \item \textbf{EDA Log:} Record every action in the 4-column log (\textbf{Finding $\to$ Evidence $\to$ Decision $\to$ Status}).
 \end{enumerate}
+
+\subsection{The Visualization Matrix (Lecture 6, Slide 54)}
+\begin{center}
+\small
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Variable Types} & \textbf{Recommended Plot} & \textbf{Key Insight / Metric} \\ \hline
+1 Numeric & Histogram / Box plot & Skewness, outliers, Freedman-Diaconis bins \\ \hline
+1 Categorical & Ordered Bar Chart & Class balance, category frequencies \\ \hline
+Numeric $\times$ Numeric & Scatter Plot (with transparency \lstinline!alpha!) & Correlation, non-linear patterns, clustering \\ \hline
+Numeric $\times$ Target & Box Plots per Class & Separability between target classes \\ \hline
+Categorical $\times$ Target & Bar Chart with Reference Line (\lstinline!axhline!) & Subgroup rates vs overall baseline rate \\ \hline
+$D$ Numeric Variables & Correlation Matrix Heatmap & Pearson ($r$, linear) vs Spearman ($\rho$, rank) \\ \hline
+\end{tabular}
+\end{center}
 
 \vspace{0.8em}
 
@@ -151,13 +175,13 @@ The standard EDA protocol followed across every laboratory:
 \begin{lstlisting}[language=Python]
 # HOW:
 df = pd.read_csv("nordicmart_customers.csv")
-customers = df.copy()  # Never mutate the raw table df!
+customers = df.copy()  # Raw table remains strictly immutable!
 
 print(customers.nunique())
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} Keeping \lstinline!df! untouched ensures that raw data integrity can be verified at any point with unit assertions. Calling \lstinline!nunique()! exposes constant columns (cardinality 1) and unique IDs (cardinality $= N$).
-    \item \textbf{What For:} Immediately flags \lstinline!customer_id! (3000 distinct) as an identifier to drop from features, and \lstinline!postcode! (1 distinct value: 40100) as a zero-variance column to remove.
+    \item \textbf{Why:} Keeping \lstinline!df! untouched enables unit assertions at the end of the pipeline. Calling \lstinline!nunique()! exposes identifiers (cardinality $= N$) and zero-variance constants (cardinality $\le 1$).
+    \item \textbf{What For:} Flags \lstinline!customer_id! (3000 distinct) as an identifier to drop from features, and \lstinline!postcode! (only 1 value: 40100) as a constant feature to remove.
 \end{itemize}
 
 \subsection{Recipe 2: Enforcing Ordered Categoricals \& String Types}
@@ -175,8 +199,8 @@ customers["tier"] = pd.Categorical(
 )
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} Pandas reads nullable integer columns as \lstinline!float64!, giving postcodes like \texttt{40100.0}. We cast to string and strip the decimal. Setting \lstinline!ordered=True! guarantees that plots and sort operations follow the domain hierarchy rather than alphabetical order (\texttt{Basic < Gold < Silver}).
-    \item \textbf{What For:} Prevents category order errors in bar charts and prepares ordinal features for monotonic encoding.
+    \item \textbf{Why:} Pandas coerces integer columns with missing values to \lstinline!float64! (yielding \texttt{40100.0}). We cast to text without decimals. Setting \lstinline!ordered=True! guarantees that sorting and plots respect domain hierarchy rather than alphabetical order.
+    \item \textbf{What For:} Prevents category inversion in visualizations and prepares ordinal data for monotonic encoding.
 \end{itemize}
 
 \subsection{Recipe 3: Catching Sentinels (``Nulls in Disguise'') \& Adding Indicator Flags}
@@ -190,8 +214,8 @@ customers["days_since_last_buy"] = customers["days_since_last_buy"].replace(999,
 customers["age"] = customers["age"].replace(0, np.nan)
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} The value 999 is a sentinel code for customers who never purchased; 0 in age is a placeholder for unknown age. Avoid \lstinline!inplace=True! because it is deprecated in modern pandas and triggers chained assignment warnings.
-    \item \textbf{What For:} Replaces artificial numbers with proper missing values so that recency averages drop from 69.5 to 50.2 days (unskewed), while \lstinline!never_bought! retains the business signal for the classifier.
+    \item \textbf{Why:} The value $999$ represents customers who never purchased; $0$ in age represents unrecorded age. Avoid deprecated \lstinline!inplace=True! to prevent chained assignment warnings.
+    \item \textbf{What For:} Removes artificial numbers so recency mean drops from $69.5$ to $50.2$ days (unskewed), while \lstinline!never_bought! preserves the behavioral signal for the classifier.
 \end{itemize}
 
 \subsection{Recipe 4: Diagnosing Informative Missingness (MNAR)}
@@ -201,11 +225,11 @@ print(customers.groupby(customers["web_sessions_month"].isna())["churned"].mean(
 print(customers.groupby(customers["age"].isna())["churned"].mean())
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} By grouping the target by the boolean mask of \lstinline!.isna()!, we test whether the probability of missingness depends on the target class.
+    \item \textbf{Why:} Grouping the target by the boolean mask of \lstinline!.isna()! tests whether missingness predicts the outcome.
     \item \textbf{What For:} 
     \begin{itemize}
-        \item \lstinline!web_sessions_month!: Missing churn rate is \textbf{23.1\%} vs \textbf{9.6\%} for observed. This is \textbf{informative missingness (MNAR)}. We must keep a missingness indicator flag before imputation.
-        \item \lstinline!age!: Missing churn rate is \textbf{12.6\%} vs \textbf{11.9\%} observed. This is \textbf{random missingness (MCAR)}. Standard median imputation without an extra flag is completely safe.
+        \item \lstinline!web_sessions_month!: Missing churn rate is \textbf{23.1\%} vs \textbf{9.6\%} observed. This is \textbf{informative missingness (MNAR)}. We must retain a missingness indicator flag prior to imputation.
+        \item \lstinline!age!: Missing churn rate is \textbf{12.6\%} vs \textbf{11.9\%} observed. This is \textbf{random missingness (MCAR)}. Standard median imputation without an extra flag is unbiased.
     \end{itemize}
 \end{itemize}
 
@@ -227,8 +251,8 @@ plt.suptitle("")
 plt.show()
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} Global Tukey fences ($> \$1843.24$) flag 204 points as candidate outliers. However, breaking down by tier shows that 131 belong to Gold and 63 to Silver.
-    \item \textbf{What For:} Prevents the catastrophic mistake of deleting high-value customers. The boxplot proves that spend is conditioned by tier. They are legitimate high spenders (``whales''), not noisy measurement errors.
+    \item \textbf{Why:} Global Tukey fences ($> \$1843.24$) flag 204 points as candidate outliers. However, breaking down by tier shows that 131 belong to Gold ($64\%$).
+    \item \textbf{What For:} Prevents deleting high-value customers. The boxplot proves spend is conditioned by tier. They are legitimate high spenders (``whales''), not noisy measurement errors.
 \end{itemize}
 
 \subsection{Recipe 6: Target Imbalance Audit \& Trivial Model Baseline}
@@ -245,8 +269,8 @@ recall = ((actual == 1) & (predicted == 1)).sum() / (actual == 1).sum()
 print(f"Accuracy: {accuracy:.1%}, Recall: {recall:.1%}")
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} Demonstrates the Base Rate Fallacy. The trivial model achieves 88\% accuracy simply by predicting that nobody churns.
-    \item \textbf{What For:} Establishes that accuracy is useless for this project. The final machine learning model must be evaluated on minority class recall, $F_1$-score, or PR-AUC.
+    \item \textbf{Why:} Demonstrates the Base Rate Fallacy. The trivial model achieves 88\% accuracy by predicting that nobody churns.
+    \item \textbf{What For:} Establishes that accuracy is useless for this project. Models must be evaluated using minority-class Recall, $F_1$-score, or PR-AUC.
 \end{itemize}
 
 \subsection{Recipe 7: Bivariate Feature Selection (Boxplots per Class)}
@@ -262,8 +286,8 @@ plt.tight_layout()
 plt.show()
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} Boxplots of features grouped by the binary target visually reveal separation between class distributions.
-    \item \textbf{What For:} \lstinline!days_since_last_buy! shows clear separation (churners have much higher recency; promising feature), whereas \lstinline!tickets_90d! shows almost complete box overlap (weak standalone discriminator).
+    \item \textbf{Why:} Boxplots of continuous features grouped by the binary target visually reveal class separability.
+    \item \textbf{What For:} \lstinline!days_since_last_buy! shows clear separation (promising predictive feature), whereas \lstinline!tickets_90d! displays heavy interquartile overlap (weak standalone discriminator).
 \end{itemize}
 
 \subsection{Recipe 8: Stratified Correlation Matrix (Catching Simpson's Paradox)}
@@ -280,8 +304,8 @@ for tier, group in customers.groupby("tier", observed=False):
     print(f"Tier {tier:6s}:", group["annual_spend"].corr(group["web_sessions_month"]))
 \end{lstlisting}
 \begin{itemize}[leftmargin=*]
-    \item \textbf{Why:} Overall correlation is $+0.37$, suggesting that website visits cause spending. But inside each tier, correlation drops to $0.04$ (Basic), $0.04$ (Silver), and $-0.00$ (Gold).
-    \item \textbf{What For:} Uncovers \textbf{Simpson's Paradox}. Tier is a confounding variable: Gold members spend more and browse more independently. Web sessions do NOT drive spending.
+    \item \textbf{Why:} Overall correlation is $+0.37$, suggesting that website visits drive spending. Within each tier, correlation drops to $0.04$ (Basic), $0.04$ (Silver), and $-0.00$ (Gold).
+    \item \textbf{What For:} Uncovers \textbf{Simpson's Paradox}. Tier is a confounding variable: Gold members independently spend more and browse more. Web sessions do NOT cause spending.
 \end{itemize}
 
 \vspace{0.8em}
@@ -297,7 +321,7 @@ for tier, group in customers.groupby("tier", observed=False):
     \textit{Correct practice:} \lstinline!iris.duplicated().sum()! checks for identical samples across all features simultaneously.
     
     \item \textbf{Including Identifiers in Heatmaps and Models:}\\
-    \textit{Anti-pattern:} Passing \lstinline!customer_id! to \lstinline!corr()! or decision trees creates spurious correlation with sequential IDs and risks severe overfitting. Always filter out IDs.
+    \textit{Anti-pattern:} Passing \lstinline!customer_id! to \lstinline!corr()! or decision trees creates spurious correlation with sequential IDs and causes severe overfitting. Always filter out IDs.
 
     \item \textbf{Relying on a Single Histogram Bin Width:}\\
     \textit{Anti-pattern:} Plotting \lstinline!petal_length! with 5 bins makes it look like a single unimodal distribution.\\
