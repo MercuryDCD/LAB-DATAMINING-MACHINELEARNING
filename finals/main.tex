@@ -6,7 +6,7 @@
 % ==============================================================================
 
 % 1. Page Geometry & Typography
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=2cm]{geometry}
 \usepackage{mathpazo}
 \usepackage{microtype}
 \usepackage{setspace}
@@ -15,9 +15,11 @@
 % 2. Math & Symbols
 \usepackage{amsmath, amssymb}
 
-% 3. List spacing
+% 3. List spacing & Tables
 \usepackage{enumitem}
 \setlist{itemsep=0.4em, topsep=0.4em}
+\usepackage{tabularx}
+\usepackage{array}
 
 % 4. Callout boxes (tcolorbox)
 \usepackage[many]{tcolorbox}
@@ -56,12 +58,14 @@
 % 7. Code listings configuration
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{textcomp}
 \definecolor{codegreen}{rgb}{0.12, 0.55, 0.15}
 \definecolor{codegray}{rgb}{0.45, 0.45, 0.45}
-\definecolor{codepurple}{rgb}{0.55, 0.10, 0.70}
+\definecolor{codepurple}{rgb}{0.55, 0.12, 0.65}
 \definecolor{codeblue}{rgb}{0.05, 0.25, 0.75}
-\definecolor{backcolour}{rgb}{0.97, 0.98, 0.99}
-\definecolor{boxframe}{rgb}{0.80, 0.85, 0.90}
+\definecolor{codebase}{rgb}{0.55, 0.10, 0.25}      % Distinct berry/wine color for inline code & tokens
+\definecolor{backcolour}{rgb}{0.96, 0.97, 0.99}    % Subtle, clean cool-gray background
+\definecolor{boxframe}{rgb}{0.78, 0.84, 0.90}      % Slate frame border
 
 \lstdefinestyle{moderncode}{
     backgroundcolor=\color{backcolour},
@@ -69,50 +73,80 @@
     keywordstyle=\color{codeblue}\bfseries,
     numberstyle=\tiny\color{codegray},
     stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
+    identifierstyle=\color{codebase},
+    basicstyle=\ttfamily\scriptsize\color{codebase}, % Distinct berry/wine code color that pops out
     breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    keepspaces=true,
     numbers=left,
-    numbersep=6pt,
+    numbersep=5pt,
     tabsize=4,
     frame=single,
     rulecolor=\color{boxframe},
-    xleftmargin=1.5em,
-    framexleftmargin=1.5em
+    xleftmargin=1.2em,
+    framexleftmargin=1.2em,
+    aboveskip=0.8em,
+    belowskip=0.6em
 }
 \lstset{style=moderncode}
+
+% Distinct styling for \texttt to match code tokens
+\let\oldtexttt\texttt
+\renewcommand{\texttt}[1]{{\color{codebase}\oldtexttt{#1}}}
 
 % 8. Modular inclusion support (docmute allows \input of complete standalone .tex files)
 \usepackage{docmute}
 
 \begin{document}
 
-\begin{titlepage}
-    \centering
-    \vspace*{2cm}
-    {\Huge \textbf{Machine Learning \& Data Mining}\par}
-    \vspace{0.5cm}
-    {\LARGE Laboratory Technical Handbook \& Exam Review\par}
-    \vspace{1.5cm}
-    {\Large \textbf{Master in Artificial Intelligence}\par}
-    {\large Università di Bologna (UniBo)\par}
-    \vspace{2cm}
-    \textbf{Student:} Dani\\
-    \textbf{Course Instructor:} Prof. Claudio Sartori\\
-    \vfill
-    {\large Academic Year 2026/2027\par}
-\end{titlepage}
+\thispagestyle{plain}
 
-\tableofcontents
+\begin{center}
+    \vspace*{0.2cm}
+    {\Huge\bfseries\color{blue!80!black} Machine Learning \& Data Mining}\\[0.4em]
+    {\LARGE\textbf{Laboratory Technical Handbook \& Study Guide}}\\[0.8em]
+    {\large Master in Artificial Intelligence --- Università di Bologna (UniBo)}\\[0.6em]
+    \small
+    \textbf{Student:} Dani \quad $\vert$ \quad \textbf{Instructor:} Prof. Claudio Sartori \quad $\vert$ \quad \textbf{Academic Year:} 2026/2027
+\end{center}
+
+\vspace{0.8em}
+\hrule
+\vspace{1.2em}
+
+% --- Compact Table of Contents on Page 1 ---
+{
+    \hypersetup{linkcolor=blue!75!black}
+    \setcounter{tocdepth}{2}
+    \setstretch{0.92}
+    \small
+    \tableofcontents
+}
+
+\vfill
+\begin{center}
+    \footnotesize\color{gray}
+    \rule{0.4\textwidth}{0.4pt}\\[0.4em]
+    Modular laboratory notes compiled via \texttt{docmute} --- Master in AI (UniBo)
+\end{center}
 \newpage
 
 % ==============================================================================
 % MODULAR LAB NOTES INCLUSION
 % ==============================================================================
+\setcounter{section}{0}
 \input{lab01-eda-notes.tex}
 
 % Future labs will be added here weekly:
 % \newpage
 % \input{lab02-preprocessing-notes.tex}
+
+% ==============================================================================
+% CUMULATIVE ML CODE GLOSSARY & RECURRING PATTERNS
+% ==============================================================================
+\newpage
+\input{code-glossary.tex}
 
 \end{document}
 

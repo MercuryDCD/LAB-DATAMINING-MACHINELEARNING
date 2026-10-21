@@ -1,0 +1,352 @@
+\documentclass[11pt,a4paper]{article}
+
+% ==============================================================================
+% PREAMBLE: MODERN TECHNICAL ARTICLE STYLE (latex-notes-generator)
+% ==============================================================================
+
+% 1. Page Geometry & Typography
+\usepackage[margin=2cm]{geometry}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.15}
+
+% 2. Math & Symbols
+\usepackage{amsmath, amssymb}
+
+% 3. List spacing & Tables
+\usepackage{enumitem}
+\setlist{itemsep=0.3em, topsep=0.3em}
+\usepackage{tabularx}
+\usepackage{array}
+
+% 4. Callout boxes (tcolorbox)
+\usepackage[many]{tcolorbox}
+\newtcolorbox{definitionbox}[1][]{
+    colback=blue!3!white,
+    colframe=blue!60!black,
+    fonttitle=\bfseries,
+    title=#1,
+    arc=2mm
+}
+\newtcolorbox{formulabox}{
+    colback=gray!5!white,
+    colframe=gray!40!black,
+    boxrule=0.5pt,
+    arc=1mm
+}
+
+% 5. Header & Footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{Cumulative ML Code Glossary \& Practical Reference}}
+\fancyhead[R]{ML \& Data Mining --- UniBo}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% 6. Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    urlcolor=blue!70!black,
+    citecolor=green!50!black
+}
+
+% 7. Code listings configuration
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{textcomp}
+
+\definecolor{codegreen}{rgb}{0.12, 0.55, 0.15}
+\definecolor{codegray}{rgb}{0.45, 0.45, 0.45}
+\definecolor{codepurple}{rgb}{0.55, 0.12, 0.65}
+\definecolor{codeblue}{rgb}{0.05, 0.25, 0.75}
+\definecolor{codebase}{rgb}{0.55, 0.10, 0.25}      % Distinct berry/wine color for inline code & tokens
+\definecolor{backcolour}{rgb}{0.96, 0.97, 0.99}    % Subtle, clean cool-gray background
+\definecolor{boxframe}{rgb}{0.78, 0.84, 0.90}      % Slate frame border
+
+\lstdefinestyle{moderncode}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    identifierstyle=\color{codebase},
+    basicstyle=\ttfamily\scriptsize\color{codebase}, % Distinct berry/wine code color
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    tabsize=4,
+    frame=single,
+    rulecolor=\color{boxframe},
+    xleftmargin=1.2em,
+    framexleftmargin=1.2em,
+    aboveskip=0.8em,
+    belowskip=0.6em
+}
+\lstset{style=moderncode}
+
+% Distinct styling for \texttt to match code tokens
+\let\oldtexttt\texttt
+\renewcommand{\texttt}[1]{{\color{codebase}\oldtexttt{#1}}}
+
+\begin{document}
+
+% ==============================================================================
+% GLOSSARY HEADER BANNER & TOC REGISTRATION (FUNCTIONAL HYPERREF LINK)
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{section}{\textbf{Cumulative ML Code Glossary \& Practical Reference}}
+
+\begin{tcolorbox}[
+    colback=blue!5!white,
+    colframe=blue!65!black,
+    arc=3mm,
+    boxrule=1.2pt,
+    left=14pt, right=14pt, top=12pt, bottom=12pt
+]
+    {\Huge\bfseries\color{blue!75!black} Cumulative ML Code Glossary}\\[0.3em]
+    {\LARGE\bfseries Master Practical Playbook: What it Does, How \& When to Use It}\\[0.4em]
+    {\normalsize\textsf{End-of-Handbook Cumulative Quick-Reference --- Expanding Laboratory by Laboratory}}\par
+    \vspace{0.8em}
+    \hrule
+    \vspace{0.6em}
+    \footnotesize
+    \textbf{Course:} Machine Learning \& Data Mining (Prof. Claudio Sartori) \hfill \textbf{Degree:} Master in AI (UniBo)\\
+    \textbf{Scope:} Centralized Method Reference, Practical Mechanics \& Production Pipeline Skeletons
+\end{tcolorbox}
+\vspace{0.5em}
+
+This cumulative appendix provides a direct, practical playbook of all essential operations in Pandas, NumPy, Matplotlib, and Seaborn introduced across the laboratory sessions. For every technique, it breaks down:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Command / Syntax (How):} The clean, idiomatic Python call.
+    \item \textbf{What it Does:} Exact technical action on the data structures in memory.
+    \item \textbf{When to Use:} The analytical trigger and purpose in the machine learning workflow.
+\end{itemize}
+
+% ==============================================================================
+% G.1 TABLE INGESTION, CARDINALITY & MEMORY DECOUPLING
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{subsection}{G.1 Table Ingestion, Cardinality \& Memory Decoupling}
+\section*{G.1 Table Ingestion, Cardinality \& Memory Decoupling}
+
+{\small
+\noindent
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\ttfamily\footnotesize\color{codebase}}p{5.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{\textcolor{black}{\textrm{Command / Syntax}}} & \textbf{What it Does} & \textbf{When to Use (Pipeline Context)} \\ \hline
+pd.read\_csv(f, names=[...]) & Ingests raw CSV and assigns an explicit schema list. & When loading headerless files to avoid losing the first row as column titles. \\ \hline
+df.copy() & Allocates an independent deep memory clone of the DataFrame. & Immediately after ingestion to protect raw baseline tables from in-place mutations. \\ \hline
+df.shape / df.info() & Inspects dimensionality $(N, D)$, null counts, and storage dtypes. & At the first step of EDA to assess sample volume and detect float/object conversions. \\ \hline
+df.nunique() & Counts distinct unique values per column. & At early screening to detect ID columns ($nunique=N$) and constants ($nunique \le 1$). \\ \hline
+df.duplicated().sum() & Counts identical duplicate rows across all columns. & During data quality auditing to detect redundant records before model training. \\ \hline
+assert condition, "msg" & Halts execution with an error if condition evaluates to False. & At the end of the pipeline to verify that data cleaning never mutated the raw table. \\ \hline
+\end{tabularx}
+}
+
+\vspace{0.5em}
+\noindent\textbf{Recurring Skeleton: Initial Data Hygiene \& Cardinality Audit}\par\vspace{0.2em}\nopagebreak
+\begin{lstlisting}[language=Python]
+# 1. Ingest with explicit schema and decouple memory
+raw_df = pd.read_csv("dataset.csv")
+df = raw_df.copy()
+
+# 2. Inspect dimensions and audit cardinality
+print(f"Dimensions: {df.shape[0]} rows, {df.shape[1]} columns")
+cardinality = df.nunique()
+candidate_ids = cardinality[cardinality == len(df)].index.tolist()
+zero_variance = cardinality[cardinality <= 1].index.tolist()
+
+# 3. Clean drop: remove IDs (memorization trap) and constants (zero entropy)
+df = df.drop(columns=candidate_ids + zero_variance)
+print(f"Dropped identifiers: {candidate_ids} | Dropped constants: {zero_variance}")
+\end{lstlisting}
+
+% ==============================================================================
+% G.2 TYPE SANITIZATION & STEVENS' MEASUREMENT SCALES
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{subsection}{G.2 Type Sanitization \& Stevens' Measurement Scales}
+\section*{G.2 Type Sanitization \& Stevens' Measurement Scales}
+
+{\small
+\noindent
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\ttfamily\footnotesize\color{codebase}}p{5.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{\textcolor{black}{\textrm{Command / Syntax}}} & \textbf{What it Does} & \textbf{When to Use (Pipeline Context)} \\ \hline
+s.astype("string") & Casts column to dedicated null-tolerant text storage. & When handling nominal codes (zip codes, store IDs) to disable meaningless numeric math. \\ \hline
+s.str.replace(r"\textbackslash{}.0\$", "") & Strips trailing floating-point decimal string artifacts. & After integer columns containing nulls were coerced to float strings (\texttt{40100.0} $\to$ \texttt{"40100"}). \\ \hline
+pd.Categorical(s, ordered=True) & Instantiates ordered category dtype backed by integer codes. & On ordinal features to enforce business ranking ($\text{Basic} < \text{Silver} < \text{Gold}$) over alphabetical order. \\ \hline
+df.select\_dtypes("number") & Filters DataFrame to retain only numerical columns. & Before computing correlation heatmaps or distance metrics to exclude IDs and text codes. \\ \hline
+\end{tabularx}
+}
+
+\vspace{0.5em}
+\noindent\textbf{Recurring Skeleton: Enforcing Semantic Scales}\par\vspace{0.2em}\nopagebreak
+\begin{lstlisting}[language=Python]
+# 1. Fix float coercion on nominal codes (e.g. postal codes, terminal IDs)
+df["postcode"] = df["postcode"].astype("string").str.replace(r"\.0$", "", regex=True)
+
+# 2. Impose natural category order (avoids alphabetical sorting: Basic < Silver < Gold)
+df["tier"] = pd.Categorical(
+    df["tier"],
+    categories=["Basic", "Silver", "Gold"],
+    ordered=True
+)
+\end{lstlisting}
+
+% ==============================================================================
+% G.3 SENTINEL UNMASKING & MISSINGNESS DIAGNOSTICS (MCAR VS MNAR)
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{subsection}{G.3 Sentinel Unmasking \& Missingness Analysis (MCAR vs MNAR)}
+\section*{G.3 Sentinel Unmasking \& Missingness Analysis (MCAR vs MNAR)}
+
+{\small
+\noindent
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\ttfamily\footnotesize\color{codebase}}p{5.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{\textcolor{black}{\textrm{Command / Syntax}}} & \textbf{What it Does} & \textbf{When to Use (Pipeline Context)} \\ \hline
+(s == sentinel).astype(int) & Creates a binary $0/1$ indicator feature from dummy codes. & \textit{Before} replacing sentinels with NaN, preserving the behavioral event (e.g. never bought). \\ \hline
+s.replace(sentinel, np.nan) & Replaces dummy values with IEEE NaN out-of-place. & To clean numeric scales and unbias means and variances distorted by sentinel numbers. \\ \hline
+s.isna().mean() * 100 & Calculates percentage of missing values in the column. & To evaluate data completeness and decide between imputation or column dropping. \\ \hline
+df.groupby(s.isna())[y].mean() & Computes average target rate for observed vs missing rows. & To diagnose MCAR (rates match $\implies$ safe for median) vs MNAR (rates diverge $\implies$ keep flag). \\ \hline
+\end{tabularx}
+}
+
+\vspace{0.5em}
+\noindent\textbf{Recurring Skeleton: Sentinel Unmasking \& MNAR Diagnostic Pipeline}\par\vspace{0.2em}\nopagebreak
+\begin{lstlisting}[language=Python]
+# 1. Capture behavioral meaning of database sentinels (e.g. 999 = never purchased)
+df["never_purchased"] = (df["recency_days"] == 999).astype(int)
+
+# 2. Out-of-place replacement: unskew mean and standard deviation
+df["recency_days"] = df["recency_days"].replace(999, np.nan)
+df["age"] = df["age"].replace(0, np.nan)
+
+# 3. Check if missingness correlates with the target (MNAR diagnostic)
+for col in ["recency_days", "web_activity", "age"]:
+    target_by_na = df.groupby(df[col].isna())["churn"].mean()
+    divergence = abs(target_by_na.get(True, 0) - target_by_na.get(False, 0))
+    # If divergence is substantial -> MNAR: keep binary indicator flag!
+    print(f"Feature {col:15s} Missingness Divergence: {divergence:.3f}")
+\end{lstlisting}
+
+% ==============================================================================
+% G.4 STATISTICAL ROBUSTNESS & CONTEXTUAL OUTLIER CONDITIONING
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{subsection}{G.4 Statistical Robustness \& Outlier Conditioning}
+\section*{G.4 Statistical Robustness \& Outlier Conditioning}
+
+{\small
+\noindent
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\ttfamily\footnotesize\color{codebase}}p{5.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{\textcolor{black}{\textrm{Command / Syntax}}} & \textbf{What it Does} & \textbf{When to Use (Pipeline Context)} \\ \hline
+s.quantile([0.25, 0.75]) & Computes 25th ($Q_1$) and 75th ($Q_3$) percentiles. & To calculate robust dispersion metrics ($IQR = Q_3 - Q_1$) resistant to heavy tails. \\ \hline
+np.log10(s.replace(0, nan)) & Applies point-wise base-10 logarithmic compression. & On right-skewed positive features (spend, counts) to stabilize variance for linear models. \\ \hline
+df[s > upper\_fence] & Filters rows exceeding Tukey's fence ($Q_3 + 1.5 \cdot IQR$). & To isolate candidate outliers for inspection before deciding whether to drop or keep. \\ \hline
+df.boxplot(col, by=group) & Draws stratified boxplots across category levels. & To check whether extreme values belong to legitimate VIP segments (e.g., Gold whales). \\ \hline
+\end{tabularx}
+}
+
+\vspace{0.5em}
+\noindent\textbf{Recurring Skeleton: Tukey IQR Boundaries \& Subgroup Inspection}\par\vspace{0.2em}\nopagebreak
+\begin{lstlisting}[language=Python]
+# 1. Establish Tukey boundaries
+q1 = df["revenue"].quantile(0.25)
+q3 = df["revenue"].quantile(0.75)
+iqr = q3 - q1
+upper_bound = q3 + 1.5 * iqr
+
+# 2. Isolate candidate outliers
+candidates = df[df["revenue"] > upper_bound]
+
+# 3. Check distribution across business segments before deleting!
+print("Extreme values breakdown across tiers:")
+print(candidates["tier"].value_counts(normalize=True))
+# Rule: If concentrated in high-value segment (e.g. Gold whales), do not delete!
+\end{lstlisting}
+
+% ==============================================================================
+% G.5 TARGET IMBALANCE & MAJORITY BASELINE COMPARISON
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{subsection}{G.5 Target Imbalance \& Majority Baseline Comparison}
+\section*{G.5 Target Imbalance \& Majority Baseline Comparison}
+
+{\small
+\noindent
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\ttfamily\footnotesize\color{codebase}}p{5.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{\textcolor{black}{\textrm{Command / Syntax}}} & \textbf{What it Does} & \textbf{When to Use (Pipeline Context)} \\ \hline
+s.value\_counts(normalize=True) & Computes relative class proportions summing to 1.0. & On the target column to quantify imbalance severity ($88/12$) before modeling. \\ \hline
+pd.Series(val, index=...) & Creates a constant Series aligned with dataset index. & To construct trivial baseline predictions ($y_{\text{pred}} = \text{mode}(y)$) for benchmarking. \\ \hline
+pd.crosstab(actual, pred) & Computes a 2D contingency table of actual vs predicted classes. & To unmask false performance: shows 0 true positives despite high apparent accuracy. \\ \hline
+((y == 1) \& (pred == 1)).sum() & Counts True Positives via bitwise AND reduction. & To evaluate whether a model actually catches the rare class of interest (Recall). \\ \hline
+ax.axhline(overall\_rate) & Draws a horizontal scalar reference line across plot axes. & On categorical rate bar charts to show whether subgroups deviate from the baseline average. \\ \hline
+\end{tabularx}
+}
+
+\vspace{0.5em}
+\noindent\textbf{Recurring Skeleton: The Majority-Class Baseline Check}\par\vspace{0.2em}\nopagebreak
+\begin{lstlisting}[language=Python]
+actual = df["churned"]
+majority_class = actual.mode()[0]
+trivial_pred = pd.Series(majority_class, index=df.index)
+
+# 2x2 contingency table showing deceptive accuracy
+conf_mat = pd.crosstab(actual, trivial_pred, rownames=["Actual"], colnames=["Pred"])
+acc = (actual == trivial_pred).mean()
+actual_positives = (actual == 1).sum()
+true_positives = ((actual == 1) & (trivial_pred == 1)).sum()
+recall = true_positives / actual_positives if actual_positives > 0 else 0.0
+
+print("Contingency Matrix:\n", conf_mat)
+print(f"Majority Baseline Accuracy: {acc:.1%} | Minority Recall: {recall:.1%}")
+# Accuracy is misleading: on imbalanced data, evaluate Recall and Precision!
+\end{lstlisting}
+
+% ==============================================================================
+% G.6 BIVARIATE ASSOCIATIONS, HEATMAPS & SIMPSON'S PARADOX
+% ==============================================================================
+\phantomsection
+\addcontentsline{toc}{subsection}{G.6 Bivariate Associations, Heatmaps \& Simpson's Paradox}
+\section*{G.6 Bivariate Associations, Heatmaps \& Simpson's Paradox}
+
+{\small
+\noindent
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash\ttfamily\footnotesize\color{codebase}}p{5.8cm}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}X|}
+\hline
+\textbf{\textcolor{black}{\textrm{Command / Syntax}}} & \textbf{What it Does} & \textbf{When to Use (Pipeline Context)} \\ \hline
+df[cols].corr("pearson") & Computes linear correlation matrix $r \in [-1, 1]$. & To detect linear associations and redundant pairs ($|r| > 0.85$) on numeric features. \\ \hline
+df[cols].corr("spearman") & Computes rank-order correlation matrix $\rho \in [-1, 1]$. & When relationships may be non-linear or features contain heavy tails. \\ \hline
+sns.heatmap(corr, annot=True) & Draws a color-coded matrix with numeric annotations. & To quickly audit collinearity across all numeric predictors at a glance. \\ \hline
+for k, g in df.groupby(by): & Iterates over stratified subgroup DataFrame slices. & To detect Simpson's Paradox: tests whether aggregate correlations hold inside subgroups. \\ \hline
+\end{tabularx}
+}
+
+\vspace{0.5em}
+\noindent\textbf{Recurring Skeleton: Simpson's Paradox Check (Grouped Correlations)}\par\vspace{0.2em}\nopagebreak
+\begin{lstlisting}[language=Python]
+# 1. Aggregate correlation across the entire dataset
+overall_r = df["spend"].corr(df["web_sessions"])
+print(f"Aggregate Correlation: {overall_r:.2f}")
+
+# 2. Stratified correlation within each categorical level
+print("Correlation within each subgroup:")
+for level, group in df.groupby("tier", observed=False):
+    intra_r = group["spend"].corr(group["web_sessions"])
+    print(f"  Level {str(level):10s}: {intra_r:.2f}")
+
+# Simpson's Paradox detected if subgroup correlation collapses or reverses!
+\end{lstlisting}
+
+\end{document}
